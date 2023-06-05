@@ -2,7 +2,7 @@ const {pool} = require("../database/pool");
 
 const fs = require("fs");
 
-const faceapi = require("@vladmandic/face-api");
+// const faceapi = require("@vladmandic/face-api");
 
 
 const detectFaces = async()=>{

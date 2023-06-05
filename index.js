@@ -1,17 +1,16 @@
+const dotenv = require("dotenv");
 const express = require("express");
-const bodyParser = require("body-parser");
-// const cv = require("./opencv.js"); // Path to OpenCV.js file
+// const auth = require("./routes/auth");
+
+
+const auth = require("./routes/auth");
+const proctor = require("./routes/proctor")
+
+
+dotenv.config()
 
 const app = express();
-
-const faceapi = require("@vladmandic/face-api");
-
-app.use(bodyParser.json());
-app.use(
-  bodyParser.urlencoded({
-    extended: true,
-  })
-);
+app.use(express.json());
 
 app.use((req, res, next) => {
   res.setHeader("Access-Control-Allow-Origin", "*");
@@ -20,49 +19,25 @@ app.use((req, res, next) => {
   next();
 });
 
-app.post("/processFrames", async (req, res) => {
-  const frameData = req.body.frameData; // Assuming frameData is sent as base64 encoded image data
-  await faceapi.nets.ssdMobilenetv1.loadFromDisk("model"); // load models from a specific patch
-  await faceapi.nets.faceLandmark68Net.loadFromDisk("model");
-  await faceapi.nets.ageGenderNet.loadFromDisk("model");
-  await faceapi.nets.faceRecognitionNet.loadFromDisk("model");
-  await faceapi.nets.faceExpressionNet.loadFromDisk("model");
-  const options = new faceapi.SsdMobilenetv1Options({
-    minConfidence: 0.1,
-    maxResults: 10,
-  }); // set model options
-  const buffer = fs.readFileSync("demo/sample1.jpg"); // load jpg image as binary
-  const decodeT = faceapi.tf.node.decodeImage(buffer, 3); // decode binary buffer to rgb tensor
-  const expandT = faceapi.tf.expandDims(decodeT, 0); // add batch dimension to tensor
-  const result = await faceapi
-    .detectAllFaces(expandT, options) // run detection
-    .withFaceLandmarks()
-    .withFaceExpressions()
-    .withFaceDescriptors()
-    .withAgeAndGender();
-  faceapi.tf.dispose([decodeT, expandT]); // dispose tensors to avoid memory leaks
-  console.log({
-    result,
-  }); // eslint-disable-line no-console
-  // const width = req.body.width;
-  // const height = req.body.height;
-  // const image = imageDataUrlToPixelInput(frameData);
 
-  // const model = faceDetection.SupportedModels.MediaPipeFaceDetector;
-  // const detectorConfig = {
-  //     runtime: "mediapipe",
-  //     // or 'base/node_modules/@mediapipe/face_detection' in npm.
-  // };
-  // const detector = await faceDetection.createDetector(model, detectorConfig);
-  // const estimationConfig = {
-  //     flipHorizontal: false
-  // };
-  // const faces = await detector.estimateFaces(image, estimationConfig);
+// Routes
+app.use("/", auth);
+app.use("/", proctor);
 
-  return res.status(200).send(faces);
-});
+const PORT = process.env.PORT || 6001;
 
-// Start the server
-app.listen(3000, () => {
-  console.log("Server started on port 3000");
-});
+app.listen(PORT, () => console.log(`Server Port: ${PORT}`));
+//     // const fillInformation = require("./data");
+//     // await fillInformation();
+
+// mongoose
+//   .connect(process.env.MONGO_URL, {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+//   })
+//   .then(async () => {
+//     app.listen(PORT, () => console.log(`Server Port: ${PORT}`));
+//     // const fillInformation = require("./data");
+//     // await fillInformation();
+//   })
+//   .catch((error) => console.log(`${error} did not connect`));
